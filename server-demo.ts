@@ -7,6 +7,7 @@ import type {
   AccountAction,
   AccountDetail,
   AccountSummary,
+  ChurnedAccount,
   CsSettings,
   CsState,
   EngagementWindow,
@@ -23,7 +24,20 @@ const today = (() => {
 })();
 const asOf = today - DAY;
 
-let settings: CsSettings = { inactiveThresholdDays: 30, stalledProjectDays: 14, trendDefaultDays: 30 };
+let settings: Required<CsSettings> = {
+  needFocusFromDays: 14,
+  inactiveThresholdDays: 25,
+  stalledProjectDays: 14,
+  trendDefaultDays: 30,
+};
+
+// Sample churned subscriptions and trials (never mixed with real data).
+const churnedSeeds: Array<{ id: string; name: string; country: string; endedDaysAgo: number; reason: "EXPIRED" | "DEACTIVATED" }> = [
+  { id: "00000000-0000-4000-8000-000000000101", name: "Sample: Granite Row Builders", country: "IN", endedDaysAgo: 12, reason: "EXPIRED" },
+  { id: "00000000-0000-4000-8000-000000000102", name: "Sample: Bluepeak Constructions", country: "AE", endedDaysAgo: 64, reason: "EXPIRED" },
+  { id: "00000000-0000-4000-8000-000000000103", name: "Sample: Lakeside Interiors", country: "IN", endedDaysAgo: -40, reason: "DEACTIVATED" },
+];
+const FREE_TRIALS = 1;
 const touchpoints: Touchpoint[] = [];
 
 type Seed = {
@@ -56,7 +70,7 @@ const seeds: Seed[] = [
   { id: "00000000-0000-4000-8000-000000000001", name: "Sample: Northwind Builders", country: "IN", factors: [100, 100, 100, 100, 100, 72, 100], prior30: 84, prior7: 88, dau: 9, wau: 16, mau: 22, daysSilent: 0, projects: [6, 1], alerts: [0, 1, 0], renewalInDays: 48, seats: 25, onboarding: 100, signupDaysAgo: 420, firstValueDaysAgo: 412, core: ["BOQ", "PROCUREMENT", "SCHEDULE"], features: ["ESTIMATION", "PROPOSAL_BUILDER", "WHATSAPP_AUTOMATION"], execDaysAgo: 21, qbrDaysAgo: 60, sponsor: true },
   { id: "00000000-0000-4000-8000-000000000002", name: "Sample: Crescent Interiors", country: "AE", factors: [80, 75, 88, 75, 66, 60, 100], adjustments: [{ key: "highWhatsappEngagement", label: "WhatsApp engagement above 70%", points: 2 }], prior30: 71, prior7: 76, dau: 4, wau: 7, mau: 16, daysSilent: 1, projects: [3, 0], alerts: [0, 0, 0], renewalInDays: 132, seats: 20, onboarding: 75, signupDaysAgo: 300, firstValueDaysAgo: 290, core: ["BOQ", "PROCUREMENT"], features: ["ESTIMATION", "WHATSAPP_AUTOMATION"], execDaysAgo: 75, qbrDaysAgo: 140, sponsor: true },
   { id: "00000000-0000-4000-8000-000000000003", name: "Sample: Harbor Line Contractors", country: "US", factors: [70, 60, 50, 50, 40, 55, 50], prior30: 67, prior7: 60, dau: 2, wau: 3, mau: 12, daysSilent: 4, projects: [1, 2], alerts: [1, 2, 0], renewalInDays: 38, seats: 15, onboarding: 50, signupDaysAgo: 200, firstValueDaysAgo: 170, core: ["PROCUREMENT", "SCHEDULE"], features: ["ESTIMATION"], execDaysAgo: 130, qbrDaysAgo: 200, sponsor: true },
-  { id: "00000000-0000-4000-8000-000000000004", name: "Sample: Pinecrest Architects", country: "IN", factors: [40, 45, 40, 75, 40, 80, 100], prior30: 55, prior7: 54, dau: 1, wau: 2, mau: 10, daysSilent: 9, projects: [1, 0], alerts: [0, 0, 0], renewalInDays: 210, seats: 30, onboarding: 75, signupDaysAgo: 150, firstValueDaysAgo: 120, core: ["BOQ"], features: ["PROPOSAL_BUILDER"], execDaysAgo: 40, qbrDaysAgo: 90, sponsor: true },
+  { id: "00000000-0000-4000-8000-000000000004", name: "Sample: Pinecrest Architects", country: "IN", factors: [40, 45, 40, 75, 40, 80, 100], prior30: 55, prior7: 54, dau: 1, wau: 2, mau: 10, daysSilent: 16, projects: [1, 0], alerts: [0, 0, 0], renewalInDays: 210, seats: 30, onboarding: 75, signupDaysAgo: 150, firstValueDaysAgo: 120, core: ["BOQ"], features: ["PROPOSAL_BUILDER"], execDaysAgo: 40, qbrDaysAgo: 90, sponsor: true },
   { id: "00000000-0000-4000-8000-000000000005", name: "Sample: Delta Fitouts", country: "SG", factors: [0, 30, 0, 50, 0, 100, 50], adjustments: [{ key: "slowAlertResolution", label: "Alerts take more than 7 days to resolve", points: -5 }], prior30: 41, prior7: 30, dau: 0, wau: 0, mau: 4, daysSilent: 36, projects: [0, 0], alerts: [2, 1, 1], renewalInDays: 55, seats: 12, onboarding: 50, signupDaysAgo: 240, firstValueDaysAgo: 230, core: ["SCHEDULE"], features: [], execDaysAgo: 220, qbrDaysAgo: null, sponsor: false },
   { id: "00000000-0000-4000-8000-000000000006", name: "Sample: Meridian Homes", country: "IN", factors: [50, 60, 70, 100, 60, 70, 100], prior30: 63, prior7: 66, dau: 3, wau: 5, mau: 14, daysSilent: 2, projects: [1, 1], alerts: [0, 0, 0], renewalInDays: 300, seats: 18, onboarding: 100, signupDaysAgo: 90, firstValueDaysAgo: 80, core: ["BOQ", "SCHEDULE"], features: ["ESTIMATION", "TAKEOFF_2D"], execDaysAgo: null, qbrDaysAgo: null, sponsor: false },
   { id: "00000000-0000-4000-8000-000000000007", name: "Sample: Oakridge Engineering", country: "UK", factors: [40, 30, 20, 25, 0, 90, 100], prior30: 48, prior7: 44, dau: 0, wau: 1, mau: 5, daysSilent: 18, projects: [0, 1], alerts: [0, 0, 0], renewalInDays: 80, seats: 25, onboarding: 25, signupDaysAgo: 45, firstValueDaysAgo: null, core: [], features: [], execDaysAgo: 100, qbrDaysAgo: null, sponsor: true },
@@ -127,7 +141,11 @@ const build = (s: Seed, window: EngagementWindow): AccountSummary => {
   const obState: CsState =
     s.signupDaysAgo < 30 ? "healthy" : s.onboarding < 50 || s.firstValueDaysAgo == null ? "action" : "healthy";
   const inactive: CsState =
-    s.daysSilent == null || s.daysSilent >= settings.inactiveThresholdDays ? "action" : s.daysSilent >= 15 ? "watch" : "healthy";
+    s.daysSilent == null || s.daysSilent >= settings.inactiveThresholdDays
+      ? "action"
+      : s.daysSilent >= settings.needFocusFromDays
+        ? "watch"
+        : "healthy";
   const alertsState: CsState = s.alerts[0] >= 3 ? "action" : s.alerts[0] >= 1 ? "watch" : "healthy";
   const coreMissing = ["BOQ", "PROCUREMENT", "SCHEDULE"].filter((m) => !s.core.includes(m));
 
@@ -171,6 +189,7 @@ const build = (s: Seed, window: EngagementWindow): AccountSummary => {
     inactive: {
       lastMeaningfulActionAt: s.daysSilent == null ? null : today - s.daysSilent * DAY,
       daysSilent: s.daysSilent,
+      needFocusFromDays: settings.needFocusFromDays,
       thresholdDays: settings.inactiveThresholdDays,
       state: inactive,
     },
@@ -232,6 +251,7 @@ const build = (s: Seed, window: EngagementWindow): AccountSummary => {
   if (base.health.band === "critical") actions.push({ priority: 1, ruleId: "HS-10", title: "Book a health review call", reason: `Health score is ${score}, in the critical band.` });
   if (active === 0) actions.push({ priority: 2, ruleId: "AP-3", title: "No active projects", reason: "Zero active projects is a red flag regardless of health." });
   if (inactive === "action") actions.push({ priority: 2, ruleId: "IR-1", title: `Silent for ${s.daysSilent} days`, reason: "No user has created or updated anything recently (logins don't count)." });
+  else if (inactive === "watch") actions.push({ priority: 2, ruleId: "IR-2", title: `Quiet for ${s.daysSilent} days`, reason: `No real work for ${settings.needFocusFromDays}+ days (logins don't count). Check in before it reaches ${settings.inactiveThresholdDays} days and becomes an inactive risk.` });
   if (m30 === "declining") actions.push({ priority: 2, ruleId: "TR-1", title: `Health down ${Math.abs(delta30 ?? 0)} points in 30 days`, reason: "Check in before the decline reaches the renewal." });
   else if (m7 === "declining") actions.push({ priority: 2, ruleId: "TR-3", title: `Fast drop: ${Math.abs(score - (s.prior7 ?? score))} points this week`, reason: "7-day momentum is an early warning signal." });
   if (obState === "action") actions.push({ priority: 3, ruleId: "OB-3", title: "Onboarding is stuck", reason: s.firstValueDaysAgo == null ? "No first BOQ, PO or project after 30+ days." : `Only ${s.onboarding}% of onboarding milestones done after 30+ days.` });
@@ -271,6 +291,44 @@ const portfolio = (window: EngagementWindow, trendDays: number): Portfolio => {
   const cc = cnt(accounts, (a) => a.churn.level);
   const seatVals = accounts.map((a) => a.seats.utilisation).filter((v): v is number => v != null);
   const avgSeats = Math.round(seatVals.reduce((s, v) => s + v, 0) / seatVals.length);
+  const churned: ChurnedAccount[] = churnedSeeds.map((c) => ({
+    organizationId: c.id,
+    name: c.name,
+    accountNumber: `SAMPLE-${c.id.slice(-3)}`,
+    countryCode: c.country,
+    planName: "All-in-One",
+    reason: c.reason,
+    subscriptionValidTill: today - c.endedDaysAgo * DAY,
+    daysSinceEnded: c.reason === "EXPIRED" ? c.endedDaysAgo : null,
+  }));
+  const quiet = accounts.filter((a) => a.inactive.state === "watch").length;
+  const quietPct = (quiet / n) * 100;
+  const home: Portfolio["home"] = {
+    totalAccounts: { value: n + churned.length, freeTrials: FREE_TRIALS },
+    activeAccounts: { value: n, percentOfTotal: Math.round((n / (n + churned.length)) * 100) },
+    needFocus: {
+      value: quiet,
+      fromDays: settings.needFocusFromDays,
+      toDays: settings.inactiveThresholdDays - 1,
+      percentOfActive: Math.round(quietPct),
+      state: quietPct >= 20 ? "action" : quietPct >= 10 ? "watch" : "healthy",
+      previous: Math.max(0, quiet - 1),
+    },
+    inactiveRisk: {
+      value: inAct,
+      fromDays: settings.inactiveThresholdDays,
+      neverActive: accounts.filter((a) => a.inactive.daysSilent == null).length,
+      state: inAct > 0 ? "action" : "healthy",
+      previous: inAct,
+    },
+    avgHealth: { value: avgHealth, state: bandState(avgHealth), previous: avgHealth + 0.8 },
+    churned: {
+      available: true,
+      value: churned.length,
+      expiredLast30d: churned.filter((c) => c.daysSinceEnded != null && c.daysSinceEnded <= 30).length,
+      deactivated: churned.filter((c) => c.reason === "DEACTIVATED").length,
+    },
+  };
   const trend = Array.from({ length: trendDays }, (_, i) => {
     const t = trendDays - 1 - i;
     return {
@@ -286,7 +344,7 @@ const portfolio = (window: EngagementWindow, trendDays: number): Portfolio => {
     generatedAt: Date.now(),
     window,
     settings,
-    scope: { paidOrgs: n + 2, accountsInScope: n, activeFilterApplied: true, projectsConnected: true, supportConnected: false, liveComputedAccounts: 0 },
+    scope: { paidOrgs: n + churnedSeeds.length + FREE_TRIALS, accountsInScope: n, activeFilterApplied: true, projectsConnected: true, supportConnected: false, liveComputedAccounts: 0 },
     summary: {
       totalAccounts: n,
       avgHealth: { value: avgHealth, state: bandState(avgHealth), previous: avgHealth + 0.8 },
@@ -307,6 +365,8 @@ const portfolio = (window: EngagementWindow, trendDays: number): Portfolio => {
       seatUtilisation: { value: avgSeats, state: avgSeats >= 70 ? "healthy" : avgSeats >= 40 ? "watch" : "action", lowSeatAccounts: accounts.filter((a) => a.seats.state === "action").length },
       bands: { healthy: n - critical - atRisk, atRisk, critical },
     },
+    home,
+    churned,
     trend,
     adoption: {
       coreModules: ["BOQ", "PROCUREMENT", "SCHEDULE"].map((m) => ({
@@ -424,9 +484,17 @@ export const demoResponse = (req: any): { status: number; body: unknown } => {
       return ok("CS_V2_TOUCHPOINTS_RETRIEVED", touchpoints.filter((t) => t.organizationId === req.organizationId));
     case "CS_V2_GET_SETTINGS":
       return ok("CS_V2_SETTINGS_RETRIEVED", settings);
-    case "CS_V2_UPDATE_SETTINGS":
-      settings = { ...settings, ...req.settings };
+    case "CS_V2_UPDATE_SETTINGS": {
+      const merged = { ...settings, ...req.settings };
+      if (merged.needFocusFromDays >= merged.inactiveThresholdDays) {
+        return {
+          status: 400,
+          body: { code: "INVALID_REQUEST", message: "Request is invalid.", error: "\"Need focus from\" must be lower than \"Inactive risk from\"." },
+        };
+      }
+      settings = merged;
       return ok("CS_V2_SETTINGS_UPDATED", settings);
+    }
     case "CS_V2_GET_HEALTH_TREND":
       return ok("CS_V2_HEALTH_TREND_RETRIEVED", { organizationId: null, days: req.days ?? 30, points: portfolio(window, req.days ?? 30).trend });
     case "CS_V2_RUN_SNAPSHOT":

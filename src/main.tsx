@@ -4,7 +4,9 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import "./index.css";
 import { AppProvider } from "./context/AppContext";
 import { Layout } from "./components/Layout";
+import { Home } from "./pages/Home";
 import { Today } from "./pages/Today";
+import { Churned } from "./pages/Churned";
 import { Portfolio } from "./pages/Portfolio";
 import { Accounts } from "./pages/Accounts";
 import { AccountPage } from "./pages/AccountPage";
@@ -18,7 +20,9 @@ createRoot(document.getElementById("root")!).render(
       <BrowserRouter>
         <Routes>
           <Route element={<Layout />}>
-            <Route index element={<Today />} />
+            <Route index element={<Home />} />
+            <Route path="today" element={<Today />} />
+            <Route path="churned" element={<Churned />} />
             <Route path="portfolio" element={<Portfolio />} />
             <Route path="accounts" element={<Accounts />} />
             <Route path="accounts/:orgId" element={<AccountPage />} />

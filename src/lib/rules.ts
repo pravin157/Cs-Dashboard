@@ -22,8 +22,8 @@ export const HELP = {
     text: "Average health score of all paid, active accounts (0–100).",
     rules: "AH-1, AH-2, HS-1",
   },
-  needFocus: {
-    text: "Accounts in the critical or at-risk band.",
+  lowHealth: {
+    text: "Accounts with a health score below 70 (the at-risk or critical band).",
     rules: "NF-1 to NF-3",
   },
   engagement: {
@@ -35,8 +35,24 @@ export const HELP = {
     rules: "G-3, EN-2",
   },
   inactiveRisk: {
-    text: "Accounts where nobody has done anything meaningful within the inactive threshold.",
+    text: "Active accounts where nobody has done real work (creating or changing something) for the inactive-risk period. Logins alone don't count.",
     rules: "IR-1 to IR-5",
+  },
+  quiet: {
+    text: "Active accounts where nobody has done real work for the need-focus period, but not yet long enough to be an inactive risk. Logins alone don't count.",
+    rules: "IR-2",
+  },
+  totalAccounts: {
+    text: "Every paying All-in-One account: active plus churned. Free trials are not counted.",
+    rules: "G-1",
+  },
+  activeAccounts: {
+    text: "Paid subscription switched on and not past its end date. Every other number on the dashboard is calculated from these accounts.",
+    rules: "G-1",
+  },
+  churned: {
+    text: "Paid All-in-One subscriptions that ended without renewal, or were switched off. Free trials are not counted.",
+    rules: "Paymaster subscription status",
   },
   criticalAlerts: {
     text: "Open ALERT-severity Autopilot issues. Warnings appear on the account page only.",

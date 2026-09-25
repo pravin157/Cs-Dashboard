@@ -66,6 +66,8 @@ export interface AccountSummary {
   inactive: {
     lastMeaningfulActionAt: number | null;
     daysSilent: number | null;
+    /** Need focus starts at this many silent days; inactive risk at thresholdDays. Missing on older backends. */
+    needFocusFromDays?: number;
     thresholdDays: number;
     state: CsState;
   };
@@ -169,6 +171,29 @@ export interface Portfolio {
     seatUtilisation: { value: number | null; state: CsState | null; lowSeatAccounts: number };
     bands: { healthy: number; atRisk: number; critical: number };
   };
+  /** The six home-page cards. Missing on backends deployed before the home cards. */
+  home?: {
+    totalAccounts: { value: number; freeTrials: number };
+    activeAccounts: { value: number; percentOfTotal: number };
+    needFocus: {
+      value: number;
+      fromDays: number;
+      toDays: number;
+      percentOfActive: number;
+      state: CsState;
+      previous: number | null;
+    };
+    inactiveRisk: {
+      value: number;
+      fromDays: number;
+      neverActive: number;
+      state: CsState;
+      previous: number | null;
+    };
+    avgHealth: CardValue;
+    churned: { available: boolean; value: number; expiredLast30d: number; deactivated: number };
+  };
+  churned?: ChurnedAccount[];
   trend: TrendPoint[];
   adoption: {
     coreModules: Array<{
@@ -228,7 +253,21 @@ export interface AccountDetail extends AccountSummary {
   };
 }
 
+export interface ChurnedAccount {
+  organizationId: string;
+  name: string | null;
+  accountNumber: string | null;
+  countryCode: string | null;
+  planName: string | null;
+  /** EXPIRED = end date passed without renewal; DEACTIVATED = switched off before its end date. */
+  reason: "EXPIRED" | "DEACTIVATED";
+  subscriptionValidTill: number | null;
+  daysSinceEnded: number | null;
+}
+
 export interface CsSettings {
+  /** Missing on older backends. */
+  needFocusFromDays?: number;
   inactiveThresholdDays: number;
   stalledProjectDays: number;
   trendDefaultDays: number;

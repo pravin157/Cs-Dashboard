@@ -64,8 +64,8 @@ export const Portfolio = () => {
         <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-ink-3">Engagement & risk</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
-            label="Need focus"
-            help={HELP.needFocus}
+            label="Low health"
+            help={HELP.lowHealth}
             value={s.needFocus.value}
             unit={`of ${s.totalAccounts}`}
             state={s.needFocus.state}
@@ -98,7 +98,7 @@ export const Portfolio = () => {
             unit="accounts"
             state={s.inactiveRisk.state}
             trend={<TrendArrow current={s.inactiveRisk.value} previous={s.inactiveRisk.previous} goodWhenUp={false} />}
-            detail={`Silent ${s.inactiveRisk.thresholdDays}+ days · ${s.inactiveRisk.watch} more silent 15+ days`}
+            detail={`Quiet ${s.inactiveRisk.thresholdDays}+ days · ${s.inactiveRisk.watch} more quiet ${data.settings?.needFocusFromDays ?? 14}+ days`}
             onClick={() => go("inactive")}
           />
           <MetricCard

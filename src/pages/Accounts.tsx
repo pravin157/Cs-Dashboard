@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { ArrowDownUp, Search } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { usePortfolio } from "../lib/usePortfolio";
+import { quietState } from "../lib/home";
 import { windowShort } from "../lib/format";
 import type { AccountSummary } from "../types";
 import { Empty, ErrorNote, Loading, StateChip, StateDot } from "../components/ui";
@@ -162,7 +163,7 @@ export const Accounts = () => {
                   </td>
                   <td className="px-3 py-3">
                     <span className="flex items-center gap-1.5 text-ink-2">
-                      <StateDot state={a.inactive.state} />
+                      <StateDot state={quietState(a)} />
                       {a.inactive.daysSilent == null
                         ? "Never"
                         : a.inactive.daysSilent === 0

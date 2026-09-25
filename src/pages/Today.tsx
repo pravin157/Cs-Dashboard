@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, CalendarClock, FolderKanban, Users, Zap } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { usePortfolio } from "../lib/usePortfolio";
+import { quietState } from "../lib/home";
 import { plural, windowLabel } from "../lib/format";
 import type { AccountAction, AccountSummary, CsState } from "../types";
 import { Empty, ErrorNote, Loading, MetricCard, StateChip, StateDot } from "../components/ui";
@@ -33,7 +34,7 @@ const Fact = ({ icon: Icon, state, children }: { icon: typeof Zap; state?: CsSta
   </span>
 );
 
-const AccountCard = ({ account: a, priority }: { account: AccountSummary; priority: Priority }) => {
+export const AccountCard = ({ account: a, priority }: { account: AccountSummary; priority: Priority }) => {
   const { window } = useApp();
   const here = a.actions.filter((x) => x.priority === priority);
   const elsewhere = a.actions.length - here.length;
@@ -88,7 +89,7 @@ const AccountCard = ({ account: a, priority }: { account: AccountSummary; priori
 
       {/* Quick facts */}
       <div className="mb-4 mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-ink-2">
-        <Fact icon={Zap} state={a.inactive.state}>
+        <Fact icon={Zap} state={quietState(a)}>
           {lastActive}
         </Fact>
         {renewal && (

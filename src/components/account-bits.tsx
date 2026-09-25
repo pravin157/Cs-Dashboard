@@ -1,6 +1,7 @@
 import { ArrowDownRight, ArrowUpRight, ArrowRight } from "lucide-react";
 import type { AccountSummary, Momentum } from "../types";
 import { BAND_LABEL, bandToState } from "../lib/rules";
+import { quietState } from "../lib/home";
 import { StateChip } from "./ui";
 
 export const accountName = (a: Pick<AccountSummary, "name" | "organizationId">) =>
@@ -43,12 +44,13 @@ export const ACCOUNT_FILTERS: Array<{
   test: (a: AccountSummary) => boolean;
 }> = [
   { id: "all", label: "All", test: () => true },
-  { id: "focus", label: "Need focus", test: (a) => a.health.band !== "healthy" },
+  { id: "need-focus", label: "Need focus", test: (a) => quietState(a) === "watch" },
+  { id: "inactive", label: "Inactive risk", test: (a) => quietState(a) === "action" },
+  { id: "focus", label: "Low health", test: (a) => a.health.band !== "healthy" },
   { id: "critical", label: "Critical", test: (a) => a.health.band === "critical" },
   { id: "at-risk", label: "At risk", test: (a) => a.health.band === "at-risk" },
   { id: "healthy", label: "Healthy", test: (a) => a.health.band === "healthy" },
   { id: "declining", label: "Declining", test: (a) => a.health.momentum30d === "declining" },
-  { id: "inactive", label: "Inactive", test: (a) => a.inactive.state === "action" },
   { id: "alerts", label: "Critical alerts", test: (a) => a.alerts.critical > 0 },
   { id: "zero-projects", label: "No projects", test: (a) => a.projects.connected && a.projects.active === 0 },
   {

@@ -8,7 +8,8 @@ import { ErrorNote, Loading, Section } from "../components/ui";
 export const Settings = () => {
   const { refreshKey, refresh } = useApp();
   const { data, error, loading } = useAsync(() => api.settings(), [refreshKey]);
-  const [inactive, setInactive] = useState(30);
+  const [needFocus, setNeedFocus] = useState(14);
+  const [inactive, setInactive] = useState(25);
   const [stalled, setStalled] = useState(14);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -17,6 +18,7 @@ export const Settings = () => {
 
   useEffect(() => {
     if (data) {
+      setNeedFocus(data.needFocusFromDays ?? 14);
       setInactive(data.inactiveThresholdDays);
       setStalled(data.stalledProjectDays);
     }
@@ -24,10 +26,18 @@ export const Settings = () => {
 
   const save = async (e: FormEvent) => {
     e.preventDefault();
-    setSaving(true);
     setMessage(null);
+    if (needFocus >= inactive) {
+      setMessage("Need focus must start before inactive risk.");
+      return;
+    }
+    setSaving(true);
     try {
-      await api.updateSettings({ inactiveThresholdDays: inactive, stalledProjectDays: stalled });
+      await api.updateSettings({
+        ...(data?.needFocusFromDays != null ? { needFocusFromDays: needFocus } : {}),
+        inactiveThresholdDays: inactive,
+        stalledProjectDays: stalled,
+      });
       setMessage("Saved. Dashboards use the new values from the next load.");
       refresh();
     } catch (err) {
@@ -61,9 +71,14 @@ export const Settings = () => {
       <Section title="Thresholds" subtitle="Shared by everyone using this dashboard">
         <form onSubmit={save} className="space-y-4">
           <label className="block text-sm text-ink">
-            Inactive after (days)
-            <span className="block text-xs text-ink-3">An account is flagged when nobody has done anything meaningful for this long. 1–365, default 30 (IR-5).</span>
-            <input type="number" min={1} max={365} value={inactive} onChange={(e) => setInactive(Number(e.target.value))} className={input} required />
+            Need focus from (days)
+            <span className="block text-xs text-ink-3">An active account moves to Need focus after this many days without real work. Default 14.</span>
+            <input type="number" min={1} max={364} value={needFocus} onChange={(e) => setNeedFocus(Number(e.target.value))} className={input} required />
+          </label>
+          <label className="block text-sm text-ink">
+            Inactive risk from (days)
+            <span className="block text-xs text-ink-3">After this many days it moves to Inactive risk. Default 25 (IR-5). Need focus covers the days in between: {needFocus}–{Math.max(needFocus, inactive - 1)}.</span>
+            <input type="number" min={2} max={365} value={inactive} onChange={(e) => setInactive(Number(e.target.value))} className={input} required />
           </label>
           <label className="block text-sm text-ink">
             Project stalled after (days)

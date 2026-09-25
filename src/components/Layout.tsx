@@ -1,6 +1,8 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { ErrorBoundary } from "./ErrorBoundary";
 import {
   CalendarClock,
+  House,
   Inbox,
   LayoutGrid,
   Moon,
@@ -16,7 +18,8 @@ import { fmtDate } from "../lib/format";
 import type { EngagementWindow } from "../types";
 
 const NAV = [
-  { to: "/", label: "Today", icon: Inbox, end: true },
+  { to: "/", label: "Home", icon: House, end: true },
+  { to: "/today", label: "Today", icon: Inbox },
   { to: "/portfolio", label: "Portfolio", icon: LayoutGrid },
   { to: "/accounts", label: "Accounts", icon: Users },
   { to: "/renewals", label: "Renewals", icon: CalendarClock },
@@ -49,6 +52,7 @@ const ThemeButton = () => {
 
 export const Layout = () => {
   const { window, setWindow, asOf, demoMode, refresh } = useApp();
+  const location = useLocation();
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
@@ -137,7 +141,9 @@ export const Layout = () => {
           </div>
         </header>
         <main className="mx-auto max-w-[1280px] px-4 py-6 md:px-8">
-          <Outlet />
+          <ErrorBoundary key={location.pathname}>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>
