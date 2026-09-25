@@ -71,11 +71,15 @@ const PORT = Number(process.env.PORT) || 3100;
 if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
   (async () => {
     const { createServer } = await import("vite");
-    const vite = await createServer({ server: { middlewareMode: true }, appType: "spa" });
-    app.use(vite.middlewares);
-    app.listen(PORT, () =>
+    const server = app.listen(PORT, () =>
       console.log(`CS dashboard v2 on http://localhost:${PORT}${demoMode ? " (demo data)" : ""}`),
     );
+    // Run Vite's live-reload websocket on the same HTTP server (middleware mode has none of its own).
+    const vite = await createServer({
+      server: { middlewareMode: true, hmr: { server } },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
   })();
 } else if (!process.env.VERCEL) {
   const dist = path.join(process.cwd(), "dist");
