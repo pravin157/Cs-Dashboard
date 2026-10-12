@@ -6,7 +6,7 @@ import { homeCards } from "../lib/home";
 import { HELP } from "../lib/rules";
 import { plural } from "../lib/format";
 import type { AccountSummary } from "../types";
-import { Empty, ErrorNote, Loading, MetricCard, TrendArrow } from "../components/ui";
+import { Empty, ErrorNote, Loading, MetricCard, ModuleInfo, TrendArrow } from "../components/ui";
 import { AccountCard } from "./Today";
 
 const PREVIEW = 3;
@@ -41,6 +41,8 @@ export const Home = () => {
           don't count.
         </p>
       </div>
+
+      <ModuleInfo id="home" />
 
       {h.partial && (
         <div className="rounded-lg border border-hairline bg-warn-soft px-4 py-3 text-sm text-warn-ink">

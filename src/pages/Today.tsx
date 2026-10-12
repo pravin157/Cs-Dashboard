@@ -6,7 +6,7 @@ import { usePortfolio } from "../lib/usePortfolio";
 import { quietState } from "../lib/home";
 import { plural, windowLabel } from "../lib/format";
 import type { AccountAction, AccountSummary, CsState } from "../types";
-import { Empty, ErrorNote, Loading, MetricCard, StateChip, StateDot } from "../components/ui";
+import { Empty, ErrorNote, Loading, MetricCard, ModuleInfo, StateChip, StateDot } from "../components/ui";
 import { HealthBadge, MomentumTag, accountName } from "../components/account-bits";
 
 type Priority = AccountAction["priority"];
@@ -169,6 +169,8 @@ export const Today = () => {
           Each card says why it is here.
         </p>
       </div>
+
+      <ModuleInfo id="today" />
 
       {data.accounts.length === 0 ? (
         <div className="card">

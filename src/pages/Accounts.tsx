@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowDownUp, Search } from "lucide-react";
 import { useApp } from "../context/AppContext";
@@ -6,7 +6,7 @@ import { usePortfolio } from "../lib/usePortfolio";
 import { quietState } from "../lib/home";
 import { windowShort } from "../lib/format";
 import type { AccountSummary } from "../types";
-import { Empty, ErrorNote, Loading, StateChip, StateDot } from "../components/ui";
+import { Empty, ErrorNote, Loading, ModuleInfo, StateChip, StateDot } from "../components/ui";
 import { ACCOUNT_FILTERS, HealthBadge, MomentumTag, accountName } from "../components/account-bits";
 
 type SortKey = "health" | "silent" | "renewal" | "name";
@@ -28,7 +28,11 @@ export const Accounts = () => {
   const { data, error, loading } = usePortfolio();
   const { refresh, window } = useApp();
   const [params, setParams] = useSearchParams();
-  const [query, setQuery] = useState("");
+  const qParam = params.get("q");
+  const [query, setQuery] = useState(qParam ?? "");
+  useEffect(() => {
+    if (qParam != null) setQuery(qParam);
+  }, [qParam]);
   const filterId = params.get("filter") ?? "all";
   const sort = (params.get("sort") as SortKey) || "health"; // G-7 default
 
@@ -72,6 +76,8 @@ export const Accounts = () => {
           )}
         </p>
       </div>
+
+      <ModuleInfo id="accounts" />
 
       <div className="flex flex-wrap items-center gap-2">
         <label className="relative">

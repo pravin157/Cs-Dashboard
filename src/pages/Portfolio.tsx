@@ -4,7 +4,7 @@ import { useApp } from "../context/AppContext";
 import { usePortfolio } from "../lib/usePortfolio";
 import { HELP } from "../lib/rules";
 import { windowLabel } from "../lib/format";
-import { ErrorNote, Loading, MetricCard, Section, TrendArrow } from "../components/ui";
+import { ErrorNote, Loading, MetricCard, ModuleInfo, Section, TrendArrow } from "../components/ui";
 import { BandBar, HealthLine } from "../components/charts";
 
 const RANGES = [30, 60, 90] as const;
@@ -34,6 +34,8 @@ export const Portfolio = () => {
           <p className="text-xs text-ink-3">Subscription status unavailable, so showing all paid accounts.</p>
         )}
       </div>
+
+      <ModuleInfo id="portfolio" />
 
       {/* Health first: the one headline */}
       <div className="grid gap-4 lg:grid-cols-3">

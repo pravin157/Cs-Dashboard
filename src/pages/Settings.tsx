@@ -3,7 +3,7 @@ import { api } from "../api/client";
 import { useApp } from "../context/AppContext";
 import { useAsync } from "../lib/useAsync";
 import { fmtDate } from "../lib/format";
-import { ErrorNote, Loading, Section } from "../components/ui";
+import { ErrorNote, Loading, ModuleInfo, Section } from "../components/ui";
 
 export const Settings = () => {
   const { refreshKey, refresh } = useApp();
@@ -68,6 +68,7 @@ export const Settings = () => {
   return (
     <div className="max-w-2xl space-y-5">
       <h1 className="text-2xl font-semibold text-ink">Settings</h1>
+      <ModuleInfo id="settings" />
       <Section title="Thresholds" subtitle="Shared by everyone using this dashboard">
         <form onSubmit={save} className="space-y-4">
           <label className="block text-sm text-ink">

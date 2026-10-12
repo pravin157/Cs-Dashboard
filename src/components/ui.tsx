@@ -4,14 +4,17 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   CheckCircle2,
+  ChevronDown,
   Eye,
   HelpCircle,
+  Info,
   Minus,
   PlugZap,
   RefreshCw,
 } from "lucide-react";
 import type { CsState } from "../types";
 import { STATE_LABEL } from "../lib/rules";
+import { MODULES, type ModuleId } from "../lib/modules";
 
 const STATE_STYLE: Record<CsState, { chip: string; icon: typeof CheckCircle2; dot: string }> = {
   healthy: { chip: "bg-good-soft text-good-ink", icon: CheckCircle2, dot: "bg-good" },
@@ -150,6 +153,56 @@ export const Section = ({
     {children}
   </section>
 );
+
+const infoKey = (id: ModuleId) => `cs-v2-info-${id}`;
+
+/** "About this module" card shown at the top of each page; collapsed state is remembered per module. */
+export const ModuleInfo = ({ id }: { id: ModuleId }) => {
+  const m = MODULES[id];
+  const [open, setOpen] = useState(() => {
+    try {
+      return localStorage.getItem(infoKey(id)) !== "closed";
+    } catch {
+      return true;
+    }
+  });
+  const toggle = () => {
+    const next = !open;
+    setOpen(next);
+    try {
+      localStorage.setItem(infoKey(id), next ? "open" : "closed");
+    } catch {
+      // storage unavailable
+    }
+  };
+
+  return (
+    <section className="card border-l-4 !border-l-[var(--accent)]">
+      <button
+        type="button"
+        onClick={toggle}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+      >
+        <span className="flex items-center gap-2 text-sm font-medium text-ink">
+          <Info className="h-4 w-4 text-accent" aria-hidden />
+          About {m.title}
+        </span>
+        <ChevronDown className={`h-4 w-4 text-ink-3 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />
+      </button>
+      {open && (
+        <div className="px-4 pb-4 pl-10 text-sm">
+          <p className="text-ink-2">{m.summary}</p>
+          <ul className="mt-2 list-disc space-y-1 pl-4 text-ink-2 marker:text-ink-3">
+            {m.points.map((p) => (
+              <li key={p}>{p}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+};
 
 export const NotConnected = ({ what }: { what: string }) => (
   <span className="inline-flex items-center gap-1.5 rounded-md bg-none-soft px-2 py-1 text-xs text-ink-3">

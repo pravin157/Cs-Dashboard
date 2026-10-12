@@ -4,7 +4,7 @@ import { useApp } from "../context/AppContext";
 import { usePortfolio } from "../lib/usePortfolio";
 import { fmtDate } from "../lib/format";
 import { HELP } from "../lib/rules";
-import { Empty, ErrorNote, Loading, NotConnected, StateChip } from "../components/ui";
+import { Empty, ErrorNote, Loading, ModuleInfo, NotConnected, StateChip } from "../components/ui";
 import { accountName } from "../components/account-bits";
 
 export const Churned = () => {
@@ -27,6 +27,8 @@ export const Churned = () => {
         <h1 className="mt-2 text-2xl font-semibold text-ink">Churned accounts</h1>
         <p className="mt-1 text-ink-2">{HELP.churned.text} Most recent first.</p>
       </div>
+
+      <ModuleInfo id="churned" />
 
       {!available ? (
         <div className="card p-5">

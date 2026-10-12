@@ -5,7 +5,7 @@ import { useApp } from "../context/AppContext";
 import { useAsync } from "../lib/useAsync";
 import { fmtDate } from "../lib/format";
 import type { AccountSummary, CsState } from "../types";
-import { Empty, ErrorNote, Loading, StateChip } from "../components/ui";
+import { Empty, ErrorNote, Loading, ModuleInfo, StateChip } from "../components/ui";
 import { HealthBadge, MomentumTag, accountName } from "../components/account-bits";
 
 const RANGES = [30, 60, 90, 180] as const;
@@ -66,6 +66,8 @@ export const Renewals = () => {
           ))}
         </div>
       </div>
+
+      <ModuleInfo id="renewals" />
 
       {loading && !data ? (
         <Loading label="Loading renewals…" />

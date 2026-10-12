@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { usePortfolio } from "../lib/usePortfolio";
-import { ErrorNote, Loading, Section } from "../components/ui";
+import { ErrorNote, Loading, ModuleInfo, Section } from "../components/ui";
 
 const Meter = ({ label, using, total }: { label: string; using: number; total: number }) => {
   const pct = total ? Math.round((using / total) * 100) : 0;
@@ -37,6 +37,8 @@ export const Adoption = () => {
         <h1 className="text-2xl font-semibold text-ink">Adoption</h1>
         <p className="mt-1 text-ink-2">Which core modules and high-value features each account uses (last 30 days).</p>
       </div>
+
+      <ModuleInfo id="adoption" />
 
       <Section title="Core modules" subtitle="BOQ, Procurement and Schedule drive the health score (MD-1, HS-3). Open one to see who is missing it.">
         <div className="space-y-5">
