@@ -54,7 +54,10 @@ const Body = ({ a }: { a: AccountDetail }) => {
         </Link>
         <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold text-ink">{accountName(a)}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-semibold text-ink">{accountName(a)}</h1>
+              <ModuleInfo id="account" />
+            </div>
             <p className="mt-1 text-sm text-ink-3">
               {[a.accountNumber, a.countryCode, a.planName, a.emailAddress].filter(Boolean).join(" · ")}
               {a.isLive && " · score computed live (no snapshot yet)"}
@@ -81,8 +84,6 @@ const Body = ({ a }: { a: AccountDetail }) => {
           </div>
         </div>
       </div>
-
-      <ModuleInfo id="account" />
 
       {/* What to do */}
       {a.actions.length > 0 && (

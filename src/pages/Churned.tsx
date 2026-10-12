@@ -24,11 +24,12 @@ export const Churned = () => {
         <Link to="/" className="inline-flex items-center gap-1 text-sm text-ink-3 hover:text-ink">
           <ArrowLeft className="h-4 w-4" aria-hidden /> Home
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold text-ink">Churned accounts</h1>
+        <div className="mt-2 flex items-center gap-2">
+          <h1 className="text-2xl font-semibold text-ink">Churned accounts</h1>
+          <ModuleInfo id="churned" />
+        </div>
         <p className="mt-1 text-ink-2">{HELP.churned.text} Most recent first.</p>
       </div>
-
-      <ModuleInfo id="churned" />
 
       {!available ? (
         <div className="card p-5">

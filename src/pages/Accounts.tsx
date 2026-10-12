@@ -66,7 +66,10 @@ export const Accounts = () => {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-semibold text-ink">Accounts</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-semibold text-ink">Accounts</h1>
+          <ModuleInfo id="accounts" />
+        </div>
         <p className="mt-1 text-ink-2">
           {rows.length} of {data.accounts.length} accounts
           {filter.id !== "all" && (
@@ -76,8 +79,6 @@ export const Accounts = () => {
           )}
         </p>
       </div>
-
-      <ModuleInfo id="accounts" />
 
       <div className="flex flex-wrap items-center gap-2">
         <label className="relative">

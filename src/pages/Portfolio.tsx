@@ -25,7 +25,10 @@ export const Portfolio = () => {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-ink">Portfolio</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-semibold text-ink">Portfolio</h1>
+            <ModuleInfo id="portfolio" />
+          </div>
           <p className="mt-1 text-ink-2">
             {s.totalAccounts} paid, active accounts. Click any card to see the accounts behind it.
           </p>
@@ -34,8 +37,6 @@ export const Portfolio = () => {
           <p className="text-xs text-ink-3">Subscription status unavailable, so showing all paid accounts.</p>
         )}
       </div>
-
-      <ModuleInfo id="portfolio" />
 
       {/* Health first: the one headline */}
       <div className="grid gap-4 lg:grid-cols-3">

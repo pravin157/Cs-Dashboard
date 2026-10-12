@@ -1,10 +1,9 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
   AlertOctagon,
   ArrowDownRight,
   ArrowUpRight,
   CheckCircle2,
-  ChevronDown,
   Eye,
   HelpCircle,
   Info,
@@ -100,19 +99,44 @@ export const TrendArrow = ({
   );
 };
 
-export const InfoTip = ({ text, rules }: { text: string; rules?: string }) => {
+/** Open on hover or keyboard focus; the short close delay lets the pointer cross into the popover. */
+const useHoverOpen = (closeDelayMs = 150) => {
   const [open, setOpen] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const cancel = () => clearTimeout(timer.current);
+  useEffect(() => cancel, []);
+  return {
+    open,
+    show: () => {
+      cancel();
+      setOpen(true);
+    },
+    hide: () => {
+      cancel();
+      timer.current = setTimeout(() => setOpen(false), closeDelayMs);
+    },
+    close: () => {
+      cancel();
+      setOpen(false);
+    },
+  };
+};
+
+export const InfoTip = ({ text, rules }: { text: string; rules?: string }) => {
+  const { open, show, hide, close } = useHoverOpen();
   return (
-    <span className="relative inline-flex">
+    <span className="relative inline-flex" onMouseEnter={show} onMouseLeave={hide}>
       <button
         type="button"
         aria-label="What does this mean?"
         className="text-ink-3 hover:text-ink-2"
         onClick={(e) => {
           e.stopPropagation();
-          setOpen((o) => !o);
+          show();
         }}
-        onBlur={() => setOpen(false)}
+        onFocus={show}
+        onBlur={close}
+        onKeyDown={(e) => e.key === "Escape" && close()}
       >
         <HelpCircle className="h-3.5 w-3.5" />
       </button>
@@ -154,45 +178,40 @@ export const Section = ({
   </section>
 );
 
-const infoKey = (id: ModuleId) => `cs-v2-info-${id}`;
-
-/** "About this module" card shown at the top of each page; collapsed state is remembered per module. */
+/** Info icon placed beside a page title; hovering or focusing it shows the "About this module" card. */
 export const ModuleInfo = ({ id }: { id: ModuleId }) => {
   const m = MODULES[id];
-  const [open, setOpen] = useState(() => {
-    try {
-      return localStorage.getItem(infoKey(id)) !== "closed";
-    } catch {
-      return true;
-    }
-  });
-  const toggle = () => {
-    const next = !open;
-    setOpen(next);
-    try {
-      localStorage.setItem(infoKey(id), next ? "open" : "closed");
-    } catch {
-      // storage unavailable
-    }
-  };
+  const { open, show, hide, close } = useHoverOpen();
+  const panelId = useId();
 
   return (
-    <section className="card border-l-4 !border-l-[var(--accent)]">
+    <span className="relative inline-flex" onMouseEnter={show} onMouseLeave={hide}>
       <button
         type="button"
-        onClick={toggle}
+        aria-label={`About ${m.title}`}
         aria-expanded={open}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+        aria-controls={panelId}
+        onClick={show}
+        onFocus={show}
+        onBlur={close}
+        onKeyDown={(e) => e.key === "Escape" && close()}
+        className={`rounded-full p-1 transition-colors hover:bg-surface-2 hover:text-accent ${
+          open ? "text-accent" : "text-ink-3"
+        }`}
       >
-        <span className="flex items-center gap-2 text-sm font-medium text-ink">
-          <Info className="h-4 w-4 text-accent" aria-hidden />
-          About {m.title}
-        </span>
-        <ChevronDown className={`h-4 w-4 text-ink-3 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />
+        <Info className="h-5 w-5" aria-hidden />
       </button>
       {open && (
-        <div className="px-4 pb-4 pl-10 text-sm">
-          <p className="text-ink-2">{m.summary}</p>
+        <div
+          id={panelId}
+          role="tooltip"
+          className="card absolute left-0 top-full z-30 mt-2 w-80 max-w-[calc(100vw-2rem)] border-l-4 !border-l-[var(--accent)] p-4 text-left text-sm font-normal shadow-lg"
+        >
+          <p className="flex items-center gap-2 font-medium text-ink">
+            <Info className="h-4 w-4 text-accent" aria-hidden />
+            About {m.title}
+          </p>
+          <p className="mt-2 text-ink-2">{m.summary}</p>
           <ul className="mt-2 list-disc space-y-1 pl-4 text-ink-2 marker:text-ink-3">
             {m.points.map((p) => (
               <li key={p}>{p}</li>
@@ -200,7 +219,7 @@ export const ModuleInfo = ({ id }: { id: ModuleId }) => {
           </ul>
         </div>
       )}
-    </section>
+    </span>
   );
 };
 

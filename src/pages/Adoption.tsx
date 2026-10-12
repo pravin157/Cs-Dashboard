@@ -34,11 +34,12 @@ export const Adoption = () => {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-semibold text-ink">Adoption</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-semibold text-ink">Adoption</h1>
+          <ModuleInfo id="adoption" />
+        </div>
         <p className="mt-1 text-ink-2">Which core modules and high-value features each account uses (last 30 days).</p>
       </div>
-
-      <ModuleInfo id="adoption" />
 
       <Section title="Core modules" subtitle="BOQ, Procurement and Schedule drive the health score (MD-1, HS-3). Open one to see who is missing it.">
         <div className="space-y-5">

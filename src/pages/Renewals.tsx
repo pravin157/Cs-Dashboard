@@ -48,7 +48,10 @@ export const Renewals = () => {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-ink">Renewals</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-semibold text-ink">Renewals</h1>
+            <ModuleInfo id="renewals" />
+          </div>
           <p className="mt-1 text-ink-2">Accounts renewing soon, grouped by how ready they are. Soonest first.</p>
         </div>
         <div role="radiogroup" aria-label="Renewal window" className="flex rounded-lg border border-hairline bg-surface p-0.5">
@@ -66,8 +69,6 @@ export const Renewals = () => {
           ))}
         </div>
       </div>
-
-      <ModuleInfo id="renewals" />
 
       {loading && !data ? (
         <Loading label="Loading renewals…" />

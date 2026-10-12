@@ -35,14 +35,15 @@ export const Home = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-ink">Home</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-semibold text-ink">Home</h1>
+          <ModuleInfo id="home" />
+        </div>
         <p className="mt-1 text-ink-2">
           Your paid All-in-One customers at a glance. "Quiet" means nobody created or changed anything; logins alone
           don't count.
         </p>
       </div>
-
-      <ModuleInfo id="home" />
 
       {h.partial && (
         <div className="rounded-lg border border-hairline bg-warn-soft px-4 py-3 text-sm text-warn-ink">

@@ -161,7 +161,10 @@ export const Today = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-ink">Today</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-semibold text-ink">Today</h1>
+          <ModuleInfo id="today" />
+        </div>
         <p className="mt-1 text-ink-2">
           {urgent === 0
             ? "No account needs urgent attention right now."
@@ -169,8 +172,6 @@ export const Today = () => {
           Each card says why it is here.
         </p>
       </div>
-
-      <ModuleInfo id="today" />
 
       {data.accounts.length === 0 ? (
         <div className="card">

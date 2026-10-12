@@ -67,8 +67,10 @@ export const Settings = () => {
   const input = "mt-1 w-32 rounded-lg border border-hairline bg-surface px-3 py-2 text-sm text-ink";
   return (
     <div className="max-w-2xl space-y-5">
-      <h1 className="text-2xl font-semibold text-ink">Settings</h1>
-      <ModuleInfo id="settings" />
+      <div className="flex items-center gap-2">
+        <h1 className="text-2xl font-semibold text-ink">Settings</h1>
+        <ModuleInfo id="settings" />
+      </div>
       <Section title="Thresholds" subtitle="Shared by everyone using this dashboard">
         <form onSubmit={save} className="space-y-4">
           <label className="block text-sm text-ink">
