@@ -26,10 +26,6 @@ export const Home = () => {
           <h1 className="text-2xl font-semibold text-ink">Home</h1>
           <ModuleInfo id="home" />
         </div>
-        <p className="mt-1 text-ink-2">
-          Your paid All-in-One customers at a glance. "Quiet" means nobody created or changed anything; logins alone
-          don't count.
-        </p>
       </div>
 
       {h.partial && (

@@ -15,7 +15,6 @@ import {
   Monitor,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
-import { fmtDate } from "../lib/format";
 import type { EngagementWindow } from "../types";
 
 const NAV = [
@@ -52,7 +51,7 @@ const ThemeButton = () => {
 };
 
 export const Layout = () => {
-  const { window, setWindow, asOf, demoMode, refresh } = useApp();
+  const { window, setWindow, demoMode, refresh } = useApp();
   const location = useLocation();
 
   return (
@@ -62,7 +61,7 @@ export const Layout = () => {
         <div className="flex items-center justify-between px-5 py-5">
           <div>
             <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-side-ink-2">IntoAEC</p>
-            <p className="text-base font-semibold">Customer Success</p>
+            <p className="text-base font-semibold">Customer Success - Sam</p>
           </div>
           <div className="md:hidden">
             <ThemeButton />
@@ -103,16 +102,7 @@ export const Layout = () => {
         )}
         <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-hairline bg-page/95 px-4 py-3 backdrop-blur md:px-8">
           <GlobalSearch />
-          <p className="text-sm text-ink-2">
-            {asOf ? (
-              <>
-                Data as of <strong className="font-medium text-ink">{fmtDate(asOf)}</strong>
-                <span className="text-ink-3"> · refreshed daily at 02:00 UTC</span>
-              </>
-            ) : (
-              <span className="text-ink-3">Daily snapshot at 02:00 UTC</span>
-            )}
-          </p>
+          <div className="text-sm font-semibold text-ink">IntoAEC Customer Success - Sam</div>
           <div className="flex items-center gap-2">
             <span className="hidden text-xs text-ink-3 sm:inline">Active users in the last</span>
             <div role="radiogroup" aria-label="Engagement window" className="flex rounded-lg border border-hairline bg-surface p-0.5">

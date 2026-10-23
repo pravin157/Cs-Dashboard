@@ -1,17 +1,13 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { usePortfolio } from "../lib/usePortfolio";
 import { HELP } from "../lib/rules";
 import { windowLabel } from "../lib/format";
 import { ErrorNote, Loading, MetricCard, ModuleInfo, Section, TrendArrow } from "../components/ui";
-import { BandBar, HealthLine } from "../components/charts";
-
-const RANGES = [30, 60, 90] as const;
+import { BandBar } from "../components/charts";
 
 export const Portfolio = () => {
-  const [trendDays, setTrendDays] = useState<number>(30); // TR-2 default
-  const { data, error, loading } = usePortfolio(trendDays);
+  const { data, error, loading } = usePortfolio();
   const { refresh, window } = useApp();
   const navigate = useNavigate();
   const go = (filter: string) => navigate(`/accounts?filter=${filter}`);
@@ -175,49 +171,6 @@ export const Portfolio = () => {
           />
         </div>
       </div>
-
-      <Section
-        title="Average health over time"
-        subtitle="Shaded bands: green 70+, amber 40–69, red below 40"
-        action={
-          <div role="radiogroup" aria-label="Trend range" className="flex rounded-lg border border-hairline p-0.5">
-            {RANGES.map((d) => (
-              <button
-                key={d}
-                role="radio"
-                aria-checked={trendDays === d}
-                type="button"
-                onClick={() => setTrendDays(d)}
-                className={`rounded-md px-2.5 py-1 text-xs ${trendDays === d ? "bg-ink text-page" : "text-ink-2 hover:text-ink"}`}
-              >
-                {d} days
-              </button>
-            ))}
-          </div>
-        }
-      >
-        {data.trend.length > 1 ? (
-          <HealthLine points={data.trend.map((p) => ({ date: p.date, value: p.avgHealth }))} valueLabel="Average health" />
-        ) : (
-          <p className="py-10 text-center text-sm text-ink-3">
-            The trend appears once the daily snapshot has run for a few days.
-          </p>
-        )}
-      </Section>
-
-      <Section title="Engagement over time" subtitle="Average weekly ÷ monthly active users, per account">
-        {data.trend.length > 1 ? (
-          <HealthLine
-            points={data.trend.map((p) => ({ date: p.date, value: Math.round(p.avgStickiness * 100) }))}
-            valueLabel="Engagement"
-            unit="%"
-            height={160}
-            showBands={false}
-          />
-        ) : (
-          <p className="py-6 text-center text-sm text-ink-3">No history yet.</p>
-        )}
-      </Section>
 
       <p className="text-xs text-ink-3">
         Support tickets, CSAT and NPS are not connected yet (no Freshdesk/Zoho sync), so churn signal
