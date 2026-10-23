@@ -78,16 +78,14 @@ const seeds: Seed[] = [
   { id: "00000000-0000-4000-8000-000000000009", name: "Sample: Riverbend Studio", country: "IN", factors: [70, 55, 60, 75, 40, 65, 100], prior30: null, prior7: null, dau: 2, wau: 4, mau: 11, daysSilent: 3, projects: [2, 1], alerts: [0, 0, 1], renewalInDays: null, seats: null, onboarding: 75, signupDaysAgo: 20, firstValueDaysAgo: 12, core: ["BOQ", "PROCUREMENT"], features: ["ESTIMATION"], execDaysAgo: 12, qbrDaysAgo: null, sponsor: true },
 ];
 
-const WEIGHTS = [0.25, 0.2, 0.15, 0.1, 0.1, 0.1, 0.1];
-const FACTOR_KEYS = ["projects", "modules", "engagement", "onboarding", "automation", "projectRisk", "alerts"];
-const FACTOR_LABELS = [
-  "Active projects & work flowing",
-  "Module breadth & depth",
-  "Engagement (WAU/MAU)",
-  "Onboarding completion",
-  "Automation adoption",
-  "Project risk (inverted)",
-  "Critical alerts",
+// Seed `factors` index 3 (onboarding) is kept for the onboarding card but is not scored.
+const FACTORS = [
+  { i: 0, key: "projects", label: "Active projects & work flowing", weight: 0.28 },
+  { i: 1, key: "modules", label: "Module breadth & depth", weight: 0.22 },
+  { i: 2, key: "engagement", label: "Engagement (WAU/MAU)", weight: 0.17 },
+  { i: 4, key: "automation", label: "Automation adoption", weight: 0.11 },
+  { i: 5, key: "projectRisk", label: "Project risk (inverted)", weight: 0.11 },
+  { i: 6, key: "alerts", label: "Critical alerts", weight: 0.11 },
 ];
 const FEATURE_LABELS: Record<string, string> = {
   TAKEOFF_2D: "2D Takeoff",
@@ -104,7 +102,7 @@ const mom = (cur: number, prior: number | null): Momentum =>
   prior == null ? "stable" : cur - prior >= 5 ? "improving" : cur - prior <= -5 ? "declining" : "stable";
 
 const build = (s: Seed, window: EngagementWindow): AccountSummary => {
-  const weightedSum = s.factors.reduce((sum, f, i) => sum + f * WEIGHTS[i], 0);
+  const weightedSum = FACTORS.reduce((sum, f) => sum + s.factors[f.i] * f.weight, 0);
   const adj = s.adjustments ?? [];
   const score = Math.round(Math.max(0, Math.min(100, weightedSum + adj.reduce((a, b) => a + b.points, 0))));
   const m30 = mom(score, s.prior30);
@@ -164,12 +162,12 @@ const build = (s: Seed, window: EngagementWindow): AccountSummary => {
       state: bandState(score),
       previousScore: s.prior7 == null ? null : Math.round(score - (score - s.prior7) / 7),
       weightedSum: Math.round(weightedSum * 10) / 10,
-      factors: s.factors.map((f, i) => ({
-        key: FACTOR_KEYS[i],
-        label: FACTOR_LABELS[i],
-        weight: WEIGHTS[i],
-        score: f,
-        weighted: Math.round(f * WEIGHTS[i] * 10) / 10,
+      factors: FACTORS.map((f) => ({
+        key: f.key,
+        label: f.label,
+        weight: f.weight,
+        score: s.factors[f.i],
+        weighted: Math.round(s.factors[f.i] * f.weight * 10) / 10,
       })),
       adjustments: adj,
       momentum30d: m30,

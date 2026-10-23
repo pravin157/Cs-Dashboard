@@ -107,7 +107,7 @@ const Body = ({ a }: { a: AccountDetail }) => {
 
       {/* Why this score */}
       <div className="grid gap-5 lg:grid-cols-2">
-        <Section title="Why this score" subtitle="Seven weighted factors, then adjustments (HS-1)">
+        <Section title="Why this score" subtitle="Six weighted factors, then adjustments (HS-1)">
           <HealthBreakdown factors={a.health.factors} adjustments={a.health.adjustments} score={a.health.score} />
         </Section>
         <Section title="Health history" subtitle="Daily snapshots">

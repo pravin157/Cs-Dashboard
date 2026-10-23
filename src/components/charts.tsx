@@ -180,7 +180,8 @@ export const HealthBreakdown = ({
   adjustments: HealthAdjustment[];
   score: number;
 }) => {
-  const sorted = [...factors].sort((a, b) => b.weight - a.weight);
+  // Onboarding is no longer part of the score; older backends still send it.
+  const sorted = factors.filter((f) => f.key !== "onboarding").sort((a, b) => b.weight - a.weight);
   return (
     <div>
       <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-3 text-sm">

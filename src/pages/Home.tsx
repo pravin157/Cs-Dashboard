@@ -1,15 +1,11 @@
-import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { usePortfolio } from "../lib/usePortfolio";
 import { homeCards } from "../lib/home";
 import { HELP } from "../lib/rules";
 import { plural } from "../lib/format";
-import type { AccountSummary } from "../types";
-import { Empty, ErrorNote, Loading, MetricCard, ModuleInfo, TrendArrow } from "../components/ui";
-import { AccountCard } from "./Today";
-
-const PREVIEW = 3;
+import { ErrorNote, Loading, MetricCard, ModuleInfo, TrendArrow } from "../components/ui";
+import { CompanyGrid } from "../components/CompanyGrid";
 
 export const Home = () => {
   const { data, error, loading } = usePortfolio();
@@ -22,15 +18,6 @@ export const Home = () => {
 
   const h = homeCards(data);
   const bands = data.summary.bands;
-
-  // Most urgent accounts first: anything in "Act today", else "This week".
-  const byPriority = (p: number) =>
-    data.accounts
-      .filter((a) => a.actions.some((x) => x.priority === p))
-      .sort((a, b) => a.health.score - b.health.score);
-  const today = byPriority(1);
-  const preview: { list: AccountSummary[]; priority: 1 | 2 } =
-    today.length > 0 ? { list: today, priority: 1 } : { list: byPriority(2), priority: 2 };
 
   return (
     <div className="space-y-8">
@@ -127,33 +114,7 @@ export const Home = () => {
         />
       </div>
 
-      {/* A short look at who needs attention */}
-      <section>
-        <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <h2 className="text-lg font-semibold text-ink">{preview.priority === 1 ? "Act today" : "This week"}</h2>
-            <p className="text-sm text-ink-2">
-              {preview.list.length === 0
-                ? "Nothing urgent right now."
-                : `${plural(preview.list.length, "account")}, weakest health first.`}
-            </p>
-          </div>
-          <Link to="/today" className="inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline">
-            See everything in Today <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
-        </div>
-        {preview.list.length === 0 ? (
-          <div className="card">
-            <Empty title="Nothing needs you right now" text="Accounts show up here when a rule flags them." />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">
-            {preview.list.slice(0, PREVIEW).map((a) => (
-              <AccountCard key={a.organizationId} account={a} priority={preview.priority} />
-            ))}
-          </div>
-        )}
-      </section>
+      <CompanyGrid accounts={data.accounts} />
     </div>
   );
 };

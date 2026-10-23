@@ -80,7 +80,7 @@ export const MODULES: Record<ModuleId, ModuleInfo> = {
       "Everything about a single customer: its health score and why, what to do next, usage, renewal, alerts and the people using the product.",
     points: [
       "What to do next: actions generated from the card rules, most urgent first.",
-      "Why this score: the seven weighted factors behind the health score.",
+      "Why this score: the six weighted factors behind the health score.",
       "Fact cards for engagement, activity, renewal, seats, alerts, modules and features.",
       "People: who used the product in the last 30 days.",
     ],
