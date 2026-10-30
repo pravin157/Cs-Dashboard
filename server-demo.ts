@@ -472,7 +472,7 @@ export const demoResponse = (req: any): { status: number; body: unknown } => {
         contactName: req.contactName || null,
         contactTitle: req.contactTitle || null,
         notes: req.notes || null,
-        createdBy: "demo",
+        createdBy: req.createdBy || "demo",
         createdAt: Date.now(),
       };
       touchpoints.unshift(t);

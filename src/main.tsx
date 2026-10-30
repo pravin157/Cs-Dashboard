@@ -7,6 +7,7 @@ import { Layout } from "./components/Layout";
 import { Home } from "./pages/Home";
 import { Today } from "./pages/Today";
 import { Churned } from "./pages/Churned";
+import { ChurnedAccountPage } from "./pages/ChurnedAccountPage";
 import { Portfolio } from "./pages/Portfolio";
 import { Accounts } from "./pages/Accounts";
 import { AccountPage } from "./pages/AccountPage";
@@ -23,6 +24,7 @@ createRoot(document.getElementById("root")!).render(
             <Route index element={<Home />} />
             <Route path="today" element={<Today />} />
             <Route path="churned" element={<Churned />} />
+            <Route path="churned/:orgId" element={<ChurnedAccountPage />} />
             <Route path="portfolio" element={<Portfolio />} />
             <Route path="accounts" element={<Accounts />} />
             <Route path="accounts/:orgId" element={<AccountPage />} />

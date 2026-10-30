@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useState, type ReactNode } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Check, X } from "lucide-react";
 import { api } from "../api/client";
 import { useApp } from "../context/AppContext";
@@ -7,9 +7,12 @@ import { useAsync } from "../lib/useAsync";
 import { daysAgo, fmtDate, windowLabel } from "../lib/format";
 import { BAND_LABEL, bandToState, moduleLabel } from "../lib/rules";
 import type { AccountDetail, CsState } from "../types";
-import { ErrorNote, InfoTip, Loading, ModuleInfo, Section, StateChip } from "../components/ui";
+import { ErrorNote, InfoTip, Loading, ModuleInfo, Section, StateChip, TabBar } from "../components/ui";
 import { HealthBreakdown, HealthLine } from "../components/charts";
 import { MomentumTag, accountName } from "../components/account-bits";
+import { Remarks } from "../components/Remarks";
+
+type AccountTab = "overview" | "remarks";
 
 /** Small labelled fact tile used across the account page. */
 const Fact = ({
@@ -45,6 +48,11 @@ const Big = ({ children, unit }: { children: ReactNode; unit?: string }) => (
 const Body = ({ a }: { a: AccountDetail }) => {
   const { window } = useApp();
   const d = a.detail;
+  const [params, setParams] = useSearchParams();
+  const tab: AccountTab = params.get("tab") === "remarks" ? "remarks" : "overview";
+  const [remarkCount, setRemarkCount] = useState(
+    () => d.touchpoints.filter((t) => t.type === "NOTE" && t.notes).length,
+  );
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -85,165 +93,181 @@ const Body = ({ a }: { a: AccountDetail }) => {
         </div>
       </div>
 
-      {/* What to do */}
-      {a.actions.length > 0 && (
-        <Section title="What to do next" subtitle="Generated from the card rules; most urgent first">
-          <ol className="space-y-2">
-            {a.actions.map((x) => (
-              <li key={x.ruleId + x.title} className="flex gap-3 rounded-lg bg-surface-2 px-3 py-2">
-                <span className="mt-0.5 shrink-0">
-                  <StateChip state={x.priority === 1 ? "action" : x.priority === 2 ? "watch" : "healthy"} label={`P${x.priority}`} size="xs" />
-                </span>
-                <span className="text-sm">
-                  <span className="font-medium text-ink">{x.title}</span>
-                  <span className="text-ink-2"> · {x.reason}</span>
-                  <span className="ml-1 text-xs text-ink-3">({x.ruleId})</span>
-                </span>
-              </li>
-            ))}
-          </ol>
-        </Section>
-      )}
+      <TabBar<AccountTab>
+        label="Account sections"
+        tabs={[
+          { id: "overview", label: "Overview" },
+          { id: "remarks", label: "Remarks", count: remarkCount },
+        ]}
+        active={tab}
+        onChange={(id) => setParams(id === "overview" ? {} : { tab: id }, { replace: true })}
+      />
 
-      {/* Why this score */}
-      <div className="grid gap-5 lg:grid-cols-2">
-        <Section title="Why this score" subtitle="Six weighted factors, then adjustments (HS-1)">
-          <HealthBreakdown factors={a.health.factors} adjustments={a.health.adjustments} score={a.health.score} />
-        </Section>
-        <Section title="Health history" subtitle="Daily snapshots">
-          {d.history.length > 1 ? (
-            <HealthLine points={d.history.map((h) => ({ date: h.date, value: h.healthScore }))} valueLabel="Health" height={260} />
-          ) : (
-            <p className="py-10 text-center text-sm text-ink-3">History appears after a few daily snapshots.</p>
-          )}
-        </Section>
-      </div>
-
-      {/* Facts grid */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        <Fact title="Engagement" state={a.engagement.state} help={{ text: "Weekly ÷ monthly active users. 50% or more is on track.", rules: "EN-1…EN-5" }}>
-          <Big unit="weekly ÷ monthly">{a.engagement.stickinessPct}%</Big>
-          <p>
-            {a.engagement.activeUsers} active {windowLabel[window]} · {a.engagement.wau} this week · {a.engagement.mau} this month
-          </p>
-        </Fact>
-        <Fact title="Last meaningful activity" state={a.inactive.state} help={{ text: "Creating or updating a record, running a workflow, raising a PO… Logins don't count.", rules: "IR-1…IR-5" }}>
-          <Big>{a.inactive.daysSilent == null ? "Never" : a.inactive.daysSilent === 0 ? "Today" : `${a.inactive.daysSilent} days ago`}</Big>
-          <p>Flagged after {a.inactive.thresholdDays} silent days; watch from 15.</p>
-        </Fact>
-        <Fact title="Renewal" state={a.renewal.state} help={{ text: "On track: health 70+ and not declining. Watch: 40–69 or declining within 90 days. Act now: below 40, open critical alerts, or declining within 60 days.", rules: "RR-1…RR-4" }}>
-          {a.renewal.renewalDate ? (
-            <>
-              <Big unit={a.renewal.daysToRenewal != null && a.renewal.daysToRenewal >= 0 ? "days left" : undefined}>
-                {a.renewal.daysToRenewal != null && a.renewal.daysToRenewal < 0 ? "Overdue" : a.renewal.daysToRenewal}
-              </Big>
-              <p>Renews {fmtDate(a.renewal.renewalDate)} (from Paymaster)</p>
-            </>
-          ) : (
-            <p className="text-ink-3">No renewal date on file.</p>
-          )}
-        </Fact>
-        <Fact title="Seat utilisation" state={a.seats.state} help={{ text: "People active in the last 30 days ÷ licensed seats.", rules: "SU-1, SU-2" }}>
-          {a.seats.utilisation != null ? (
-            <>
-              <Big>{a.seats.utilisation}%</Big>
-              <p>
-                {a.seats.active30d} of {a.seats.licensed} licensed seats used
-              </p>
-            </>
-          ) : (
-            <p className="text-ink-3">Licensed seat count not available.</p>
-          )}
-        </Fact>
-        <Fact title="Open alerts" state={a.alerts.state} help={{ text: "Only ALERT severity counts toward the portfolio. Warnings and escalations are listed here.", rules: "CA-1…CA-4" }}>
-          <Big unit="critical">{a.alerts.critical}</Big>
-          <p>
-            {a.alerts.warning} warnings · {a.alerts.escalated} escalated
-          </p>
-        </Fact>
-        <Fact title="Core modules (30 days)" help={{ text: "BOQ, Procurement and Schedule. Depth = real records created.", rules: "MD-1…MD-3, HS-3" }}>
-          <ul className="space-y-1">
-            {d.moduleRecords.map((m) => (
-              <li key={m.module} className="flex items-center justify-between gap-2">
-                <span className="flex items-center gap-2">
-                  {m.used ? <Check className="h-4 w-4 text-good-ink" aria-label="used" /> : <X className="h-4 w-4 text-ink-3" aria-label="not used" />}
-                  <span className={m.used ? "text-ink" : "text-ink-2"}>{m.label}</span>
-                </span>
-                <span className="tabular text-ink-3">{m.records30d} records</span>
-              </li>
-            ))}
-          </ul>
-          {a.modules.other.length > 0 && (
-            <p className="mt-2 text-xs text-ink-3">Also uses: {a.modules.other.map(moduleLabel).join(", ")}</p>
-          )}
-        </Fact>
-        <Fact title="Feature adoption (30 days)" help={{ text: "Unused high-value features are adoption or upsell cues.", rules: "FA-1, FA-2" }}>
-          <ul className="space-y-1">
-            {d.featureLastUsed.map((f) => (
-              <li key={f.feature} className="flex items-center justify-between gap-2">
-                <span className="flex items-center gap-2">
-                  {f.lastUsedAt ? <Check className="h-4 w-4 text-good-ink" aria-label="used" /> : <X className="h-4 w-4 text-ink-3" aria-label="not used" />}
-                  <span className={f.lastUsedAt ? "text-ink" : "text-ink-2"}>{f.label}</span>
-                </span>
-                <span className="text-xs text-ink-3">{f.lastUsedAt ? daysAgo(f.lastUsedAt) : "Suggest it"}</span>
-              </li>
-            ))}
-          </ul>
-        </Fact>
-      </div>
-
-      <Section title="Open alerts" subtitle="From Autopilot">
-        {d.alerts.length === 0 ? (
-          <p className="text-sm text-ink-3">No open alerts.</p>
-        ) : (
-          <ul className="divide-y divide-[var(--hairline)] text-sm">
-            {d.alerts.map((al) => (
-              <li key={al.alertId} className="flex items-start justify-between gap-3 py-2">
-                <span>
-                  <span className="text-ink">{al.ruleName}</span>
-                  {al.description && <span className="block text-xs text-ink-3">{al.description}</span>}
-                </span>
-                <span className="flex shrink-0 flex-col items-end gap-1 text-xs text-ink-3">
-                  <StateChip state={al.severity === "ALERT" ? "action" : "watch"} label={al.severity.toLowerCase()} size="xs" />
-                  {daysAgo(al.firstDetectedAt)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
-
-      <Section title="People" subtitle="Who is using the product (last 30 days)">
-        {d.users.length === 0 ? (
-          <p className="text-sm text-ink-3">No user list available.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] text-sm">
-              <thead>
-                <tr className="border-b border-hairline text-left text-xs text-ink-3">
-                  <th className="py-2 pr-3 font-medium">Name</th>
-                  <th className="py-2 pr-3 font-medium">Role</th>
-                  <th className="py-2 pr-3 text-right font-medium">Actions (30d)</th>
-                  <th className="py-2 font-medium">Last active</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--hairline)]">
-                {d.users.map((u) => (
-                  <tr key={u.userId}>
-                    <td className="py-2 pr-3 text-ink">
-                      {u.name}
-                      {u.isSuperAdmin && <span className="ml-2 rounded bg-accent-soft px-1.5 py-0.5 text-[11px] text-accent">Owner</span>}
-                    </td>
-                    <td className="py-2 pr-3 text-ink-2">{u.designation ?? "—"}</td>
-                    <td className="py-2 pr-3 text-right tabular text-ink">{u.actions30d}</td>
-                    <td className="py-2 text-ink-2">{u.lastActionAt ? daysAgo(u.lastActionAt) : <span className="text-ink-3">not in 30 days</span>}</td>
-                  </tr>
+      {tab === "remarks" ? (
+        <Remarks organizationId={a.organizationId} onCount={setRemarkCount} />
+      ) : (
+        <>
+          {/* What to do */}
+          {a.actions.length > 0 && (
+            <Section title="What to do next" subtitle="Generated from the card rules; most urgent first">
+              <ol className="space-y-2">
+                {a.actions.map((x) => (
+                  <li key={x.ruleId + x.title} className="flex gap-3 rounded-lg bg-surface-2 px-3 py-2">
+                    <span className="mt-0.5 shrink-0">
+                      <StateChip state={x.priority === 1 ? "action" : x.priority === 2 ? "watch" : "healthy"} label={`P${x.priority}`} size="xs" />
+                    </span>
+                    <span className="text-sm">
+                      <span className="font-medium text-ink">{x.title}</span>
+                      <span className="text-ink-2"> · {x.reason}</span>
+                      <span className="ml-1 text-xs text-ink-3">({x.ruleId})</span>
+                    </span>
+                  </li>
                 ))}
-              </tbody>
-            </table>
+              </ol>
+            </Section>
+          )}
+
+          {/* Why this score */}
+          <div className="grid gap-5 lg:grid-cols-2">
+            <Section title="Why this score" subtitle="Six weighted factors, then adjustments (HS-1)">
+              <HealthBreakdown factors={a.health.factors} adjustments={a.health.adjustments} score={a.health.score} />
+            </Section>
+            <Section title="Health history" subtitle="Daily snapshots">
+              {d.history.length > 1 ? (
+                <HealthLine points={d.history.map((h) => ({ date: h.date, value: h.healthScore }))} valueLabel="Health" height={260} />
+              ) : (
+                <p className="py-10 text-center text-sm text-ink-3">History appears after a few daily snapshots.</p>
+              )}
+            </Section>
           </div>
-        )}
-      </Section>
+
+          {/* Facts grid */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <Fact title="Engagement" state={a.engagement.state} help={{ text: "Weekly ÷ monthly active users. 50% or more is on track.", rules: "EN-1…EN-5" }}>
+              <Big unit="weekly ÷ monthly">{a.engagement.stickinessPct}%</Big>
+              <p>
+                {a.engagement.activeUsers} active {windowLabel[window]} · {a.engagement.wau} this week · {a.engagement.mau} this month
+              </p>
+            </Fact>
+            <Fact title="Last meaningful activity" state={a.inactive.state} help={{ text: "Creating or updating a record, running a workflow, raising a PO… Logins don't count.", rules: "IR-1…IR-5" }}>
+              <Big>{a.inactive.daysSilent == null ? "Never" : a.inactive.daysSilent === 0 ? "Today" : `${a.inactive.daysSilent} days ago`}</Big>
+              <p>Flagged after {a.inactive.thresholdDays} silent days; watch from 15.</p>
+            </Fact>
+            <Fact title="Renewal" state={a.renewal.state} help={{ text: "On track: health 70+ and not declining. Watch: 40–69 or declining within 90 days. Act now: below 40, open critical alerts, or declining within 60 days.", rules: "RR-1…RR-4" }}>
+              {a.renewal.renewalDate ? (
+                <>
+                  <Big unit={a.renewal.daysToRenewal != null && a.renewal.daysToRenewal >= 0 ? "days left" : undefined}>
+                    {a.renewal.daysToRenewal != null && a.renewal.daysToRenewal < 0 ? "Overdue" : a.renewal.daysToRenewal}
+                  </Big>
+                  <p>Renews {fmtDate(a.renewal.renewalDate)} (from Paymaster)</p>
+                </>
+              ) : (
+                <p className="text-ink-3">No renewal date on file.</p>
+              )}
+            </Fact>
+            <Fact title="Seat utilisation" state={a.seats.state} help={{ text: "People active in the last 30 days ÷ licensed seats.", rules: "SU-1, SU-2" }}>
+              {a.seats.utilisation != null ? (
+                <>
+                  <Big>{a.seats.utilisation}%</Big>
+                  <p>
+                    {a.seats.active30d} of {a.seats.licensed} licensed seats used
+                  </p>
+                </>
+              ) : (
+                <p className="text-ink-3">Licensed seat count not available.</p>
+              )}
+            </Fact>
+            <Fact title="Open alerts" state={a.alerts.state} help={{ text: "Only ALERT severity counts toward the portfolio. Warnings and escalations are listed here.", rules: "CA-1…CA-4" }}>
+              <Big unit="critical">{a.alerts.critical}</Big>
+              <p>
+                {a.alerts.warning} warnings · {a.alerts.escalated} escalated
+              </p>
+            </Fact>
+            <Fact title="Core modules (30 days)" help={{ text: "BOQ, Procurement and Schedule. Depth = real records created.", rules: "MD-1…MD-3, HS-3" }}>
+              <ul className="space-y-1">
+                {d.moduleRecords.map((m) => (
+                  <li key={m.module} className="flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-2">
+                      {m.used ? <Check className="h-4 w-4 text-good-ink" aria-label="used" /> : <X className="h-4 w-4 text-ink-3" aria-label="not used" />}
+                      <span className={m.used ? "text-ink" : "text-ink-2"}>{m.label}</span>
+                    </span>
+                    <span className="tabular text-ink-3">{m.records30d} records</span>
+                  </li>
+                ))}
+              </ul>
+              {a.modules.other.length > 0 && (
+                <p className="mt-2 text-xs text-ink-3">Also uses: {a.modules.other.map(moduleLabel).join(", ")}</p>
+              )}
+            </Fact>
+            <Fact title="Feature adoption (30 days)" help={{ text: "Unused high-value features are adoption or upsell cues.", rules: "FA-1, FA-2" }}>
+              <ul className="space-y-1">
+                {d.featureLastUsed.map((f) => (
+                  <li key={f.feature} className="flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-2">
+                      {f.lastUsedAt ? <Check className="h-4 w-4 text-good-ink" aria-label="used" /> : <X className="h-4 w-4 text-ink-3" aria-label="not used" />}
+                      <span className={f.lastUsedAt ? "text-ink" : "text-ink-2"}>{f.label}</span>
+                    </span>
+                    <span className="text-xs text-ink-3">{f.lastUsedAt ? daysAgo(f.lastUsedAt) : "Suggest it"}</span>
+                  </li>
+                ))}
+              </ul>
+            </Fact>
+          </div>
+
+          <Section title="Open alerts" subtitle="From Autopilot">
+            {d.alerts.length === 0 ? (
+              <p className="text-sm text-ink-3">No open alerts.</p>
+            ) : (
+              <ul className="divide-y divide-[var(--hairline)] text-sm">
+                {d.alerts.map((al) => (
+                  <li key={al.alertId} className="flex items-start justify-between gap-3 py-2">
+                    <span>
+                      <span className="text-ink">{al.ruleName}</span>
+                      {al.description && <span className="block text-xs text-ink-3">{al.description}</span>}
+                    </span>
+                    <span className="flex shrink-0 flex-col items-end gap-1 text-xs text-ink-3">
+                      <StateChip state={al.severity === "ALERT" ? "action" : "watch"} label={al.severity.toLowerCase()} size="xs" />
+                      {daysAgo(al.firstDetectedAt)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Section>
+
+          <Section title="People" subtitle="Who is using the product (last 30 days)">
+            {d.users.length === 0 ? (
+              <p className="text-sm text-ink-3">No user list available.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[560px] text-sm">
+                  <thead>
+                    <tr className="border-b border-hairline text-left text-xs text-ink-3">
+                      <th className="py-2 pr-3 font-medium">Name</th>
+                      <th className="py-2 pr-3 font-medium">Role</th>
+                      <th className="py-2 pr-3 text-right font-medium">Actions (30d)</th>
+                      <th className="py-2 font-medium">Last active</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--hairline)]">
+                    {d.users.map((u) => (
+                      <tr key={u.userId}>
+                        <td className="py-2 pr-3 text-ink">
+                          {u.name}
+                          {u.isSuperAdmin && <span className="ml-2 rounded bg-accent-soft px-1.5 py-0.5 text-[11px] text-accent">Owner</span>}
+                        </td>
+                        <td className="py-2 pr-3 text-ink-2">{u.designation ?? "—"}</td>
+                        <td className="py-2 pr-3 text-right tabular text-ink">{u.actions30d}</td>
+                        <td className="py-2 text-ink-2">{u.lastActionAt ? daysAgo(u.lastActionAt) : <span className="text-ink-3">not in 30 days</span>}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Section>
+        </>
+      )}
     </div>
   );
 };

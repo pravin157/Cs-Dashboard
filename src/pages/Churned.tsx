@@ -53,13 +53,16 @@ export const Churned = () => {
                   <th className="px-3 py-3 font-medium">What happened</th>
                   <th className="px-3 py-3 font-medium">Subscription end date</th>
                   <th className="px-3 py-3 text-right font-medium">Days since it ended</th>
+                  <th className="px-3 py-3 font-medium">Remarks</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--hairline)]">
                 {rows.map((c) => (
                   <tr key={c.organizationId}>
                     <td className="px-4 py-3">
-                      <span className="font-medium text-ink">{accountName(c)}</span>
+                      <Link to={`/churned/${c.organizationId}`} className="font-medium text-ink hover:underline">
+                        {accountName(c)}
+                      </Link>
                       <p className="text-xs text-ink-3">
                         {[c.accountNumber, c.countryCode].filter(Boolean).join(" · ") || "—"}
                       </p>
@@ -75,6 +78,11 @@ export const Churned = () => {
                     <td className="px-3 py-3 text-ink-2">{fmtDate(c.subscriptionValidTill)}</td>
                     <td className="px-3 py-3 text-right tabular text-ink">
                       {c.daysSinceEnded ?? <span className="text-ink-3">—</span>}
+                    </td>
+                    <td className="px-3 py-3">
+                      <Link to={`/churned/${c.organizationId}`} className="text-sm text-accent hover:underline">
+                        View / add
+                      </Link>
                     </td>
                   </tr>
                 ))}

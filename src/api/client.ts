@@ -71,7 +71,10 @@ export const api = {
     contactName?: string;
     contactTitle?: string;
     notes?: string;
+    createdBy?: string;
   }) => call<Touchpoint>("CS_V2_LOG_TOUCHPOINT", t),
+  touchpoints: (organizationId: string, limit = 200) =>
+    call<Touchpoint[]>("CS_V2_GET_TOUCHPOINTS", { organizationId, limit }),
   settings: () => call<CsSettings>("CS_V2_GET_SETTINGS"),
   updateSettings: (settings: Partial<CsSettings>) =>
     call<CsSettings>("CS_V2_UPDATE_SETTINGS", { settings }),

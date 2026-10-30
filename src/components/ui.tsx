@@ -178,6 +178,42 @@ export const Section = ({
   </section>
 );
 
+/** Pill-style tab switcher (same look as the Today page group switcher). */
+export const TabBar = <T extends string>({
+  tabs,
+  active,
+  onChange,
+  label,
+}: {
+  tabs: Array<{ id: T; label: string; count?: number }>;
+  active: T;
+  onChange: (id: T) => void;
+  label: string;
+}) => (
+  <div role="tablist" aria-label={label} className="flex flex-wrap gap-1.5">
+    {tabs.map((t) => {
+      const selected = t.id === active;
+      return (
+        <button
+          key={t.id}
+          role="tab"
+          aria-selected={selected}
+          type="button"
+          onClick={() => onChange(t.id)}
+          className={`rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
+            selected
+              ? "border-ink bg-ink text-page"
+              : "border-hairline bg-surface text-ink-2 hover:border-[var(--ink-3)] hover:text-ink"
+          }`}
+        >
+          {t.label}
+          {t.count != null && <span className={selected ? "opacity-70" : "text-ink-3"}> {t.count}</span>}
+        </button>
+      );
+    })}
+  </div>
+);
+
 /** Info icon placed beside a page title; hovering or focusing it shows the "About this module" card. */
 export const ModuleInfo = ({ id }: { id: ModuleId }) => {
   const m = MODULES[id];
